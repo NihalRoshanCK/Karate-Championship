@@ -140,6 +140,41 @@ class CandidateViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
+    @action(detail=True, methods=['GET'])
+    def filter(self,request):
+        queryset = self.get_queryset()
+
+        club = self.request.query_params.get('club',None)
+        gender = self.request.query_params.get('gender',None)
+        belt_color = self.request.query_params.get('belt_color',None)
+        weight = self.request.query_params.get('weight',None)
+        kata = self.request.query_params.get('kata',None)
+        kumite = self.request.query_params.get('kumite',None)
+        category = self.request.query_params.get('category',None)
+        weight_category = self.request.query_params.get('weight_category',None)
+
+
+        
+        if club:
+            queryset = queryset.filter(club=club)
+        if gender:
+            queryset = queryset.filter(gender=gender)
+        if belt_color:
+            queryset = queryset.filter(belt_color=belt_color)
+        if weight:
+            queryset = queryset.filter(weight=weight)
+        if kata:
+            queryset = queryset.filter(kata=kata)
+        if kumite:
+            queryset = queryset.filter(kumite=kumite)
+        if category:
+            queryset = queryset.filter(category=category)
+        if weight_category:
+            queryset = queryset.filter(weight_category=weight_category)
+        
+        return queryset
+
+
 
 
 # class OtpHandler(APIView):
