@@ -69,7 +69,7 @@ class ClubViewSet(viewsets.ModelViewSet):
             }
             return Response(data,status=status.HTTP_200_OK)
          
-    @action(detail=True, methods=['GET'])
+    @action(detail=False, methods=['GET'])
     def club_statistics(self, request, pk=None):
         club = get_object_or_404(Club, pk=pk)
         
@@ -105,6 +105,8 @@ class ClubViewSet(viewsets.ModelViewSet):
         }
 
         return Response(result_data, status=status.HTTP_200_OK)
+    
+
 
 class CandidateViewSet(viewsets.ModelViewSet):
     queryset = Candidate.objects.all()
@@ -112,34 +114,62 @@ class CandidateViewSet(viewsets.ModelViewSet):
     permission_classes = [AllowAny]
 
     
-    @action(detail=False, methods=['POST'], parser_classes=[FormParser])
-    def filtered_candidates(self, request):
-        # Get filter parameters from the form data
-        print("ooooooooooooooooooooooooooooooooo")
-        category = request.data.get('category')
-        weight_category = request.data.get('weight_category')
-        gender = request.data.get('gender')
-        belt_color = request.data.get('belt_color')
-        kata = request.data.get('kata')
-        kumite = request.data.get('kumite')
 
-        # Query candidates based on filter parameters
-        candidates = Candidate.objects.filter(
-            category=category,
-            weight_category=weight_category,
-            gender=gender,
-            belt_color=belt_color,
-            kata=kata,
-            kumite=kumite
-        ).order_by('age', 'weight')
+    @action(detail=False, methods=['GET'])
+    def filters(self, request):
+        queryset = Candidate.objects.fliter()
+        
+        filters = {
+            'gender': self.request.query_params.get('gender', None),
+            'belt_color': self.request.query_params.get('belt_color', None),
+            'kata': self.request.query_params.get('kata', None),
+            'kumite': self.request.query_params.get('kumite', None),
+            'category': self.request.query_params.get('category', None),
+            'weight_category': self.request.query_params.get('weight_category', None),
+        }
 
-        # Serialize the candidates
-        serializer = CandidateSerializer(candidates, many=True)
+        for key, value in filters.items():
+            if value is not None:
+                queryset = queryset.filter(**{key: value})
 
-        # Return the serialized data
+        return Response(queryset.values(), status=status.HTTP_200_OK)
+    
+    @action(detail=False, methods=['GET'])
+    def club_candidates(self, request):
+        try:
+            club= self.request.query_params.get('club', None)
+            candidates=Candidate.objects.filter(club=club)
+            serializer = self.get_serializer(candidates,many=True)
+        except:
+            pass
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    # @action(detail=False, methods=['POST'], parser_classes=[FormParser])
+    # def filtered_candidates(self, request):
+    #     # Get filter parameters from the form data
+    #     print("ooooooooooooooooooooooooooooooooo")
+    #     category = request.data.get('category')
+    #     weight_category = request.data.get('weight_category')
+    #     gender = request.data.get('gender')
+    #     belt_color = request.data.get('belt_color')
+    #     kata = request.data.get('kata')
+    #     kumite = request.data.get('kumite')
 
+    #     # Query candidates based on filter parameters
+    #     candidates = Candidate.objects.filter(
+    #         category=category,
+    #         weight_category=weight_category,
+    #         gender=gender,
+    #         belt_color=belt_color,
+    #         kata=kata,
+    #         kumite=kumite
+    #     ).order_by('age', 'weight')
+
+    #     # Serialize the candidates
+    #     serializer = CandidateSerializer(candidates, many=True)
+
+    #     # Return the serialized data
+    #     return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 # class OtpHandler(APIView):
