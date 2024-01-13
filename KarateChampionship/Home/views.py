@@ -117,7 +117,7 @@ class CandidateViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['GET'])
     def filters(self, request):
-        queryset = Candidate.objects.fliter()
+        queryset = Candidate.objects.filter()
         
         filters = {
             'gender': self.request.query_params.get('gender', None),
@@ -144,32 +144,32 @@ class CandidateViewSet(viewsets.ModelViewSet):
             pass
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    # @action(detail=False, methods=['POST'], parser_classes=[FormParser])
-    # def filtered_candidates(self, request):
-    #     # Get filter parameters from the form data
-    #     print("ooooooooooooooooooooooooooooooooo")
-    #     category = request.data.get('category')
-    #     weight_category = request.data.get('weight_category')
-    #     gender = request.data.get('gender')
-    #     belt_color = request.data.get('belt_color')
-    #     kata = request.data.get('kata')
-    #     kumite = request.data.get('kumite')
+    @action(detail=True, methods=['POST'], parser_classes=[FormParser])
+    def filtered_candidates(self, request):
+        # Get filter parameters from the form data
+        print("ooooooooooooooooooooooooooooooooo")
+        category = request.data.get('category')
+        weight_category = request.data.get('weight_category')
+        gender = request.data.get('gender')
+        belt_color = request.data.get('belt_color')
+        kata = request.data.get('kata')
+        kumite = request.data.get('kumite')
 
-    #     # Query candidates based on filter parameters
-    #     candidates = Candidate.objects.filter(
-    #         category=category,
-    #         weight_category=weight_category,
-    #         gender=gender,
-    #         belt_color=belt_color,
-    #         kata=kata,
-    #         kumite=kumite
-    #     ).order_by('age', 'weight')
+        # Query candidates based on filter parameters
+        candidates = Candidate.objects.filter(
+            category=category,
+            weight_category=weight_category,
+            gender=gender,
+            belt_color=belt_color,
+            kata=kata,
+            kumite=kumite
+        ).order_by('age', 'weight')
 
-    #     # Serialize the candidates
-    #     serializer = CandidateSerializer(candidates, many=True)
+        # Serialize the candidates
+        serializer = CandidateSerializer(candidates, many=True)
 
-    #     # Return the serialized data
-    #     return Response(serializer.data, status=status.HTTP_200_OK)
+        # Return the serialized data
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 # class OtpHandler(APIView):
