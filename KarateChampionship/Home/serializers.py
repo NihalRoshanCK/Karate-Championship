@@ -8,7 +8,7 @@ class ClubSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Club
-        fields = ['email', 'name', 'phone', 'fees', 'password' , 'id']
+        fields = ['email','coach_name', 'name', 'phone', 'fees', 'password' , 'id']
         extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):
