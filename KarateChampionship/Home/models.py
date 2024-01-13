@@ -23,8 +23,10 @@ class CustomClubManager(BaseUserManager):
 class Club(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(unique=True)
     name=models.CharField(max_length=150)
-    phone=models.BigIntegerField(null=True)
+    coach_name=models.CharField(max_length=15)
+    phone=models.BigIntegerField()
     fees = models.IntegerField(default=0)
+    is_paid = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
