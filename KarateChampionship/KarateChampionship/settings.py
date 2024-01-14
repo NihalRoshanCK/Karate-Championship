@@ -151,8 +151,8 @@ REST_FRAMEWORK = {
 
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=240),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=14),
+    "ACCESS_TOKEN_LIFETIME": timedelta(days=240),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=240),
     "ROTATE_REFRESH_TOKENS": True,
     "BLACKLIST_AFTER_ROTATION": True,
     "UPDATE_LAST_LOGIN": False,
@@ -172,8 +172,8 @@ SIMPLE_JWT = {
     "TOKEN_TYPE_CLAIM": "token_type",
     "JTI_CLAIM": "jti",
     "SLIDING_TOKEN_REFRESH_EXP_CLAIM": "refresh_exp",
-    "SLIDING_TOKEN_LIFETIME": timedelta(minutes=5),
-    "SLIDING_TOKEN_REFRESH_LIFETIME": timedelta(days=1),
+    "SLIDING_TOKEN_LIFETIME": timedelta(days=240),
+    "SLIDING_TOKEN_REFRESH_LIFETIME": timedelta(days=240),
 }
 
 DATABASES = {

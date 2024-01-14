@@ -57,11 +57,15 @@ class ClubViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['POST'])     
     def otpcreate(self,request):
          email=request.data.get('email')
+         password=request.data.get('password')
          try:
-            club=Club.objects.get(email=email)
-            return Response({"error":"Active Club found in gven Email Id"},status=status.HTTP_401_UNAUTHORIZED)
+            if email:
+                club=Club.objects.get(email=email)
+                return Response({"error":"Active Club found in gven Email Id"},status=status.HTTP_401_UNAUTHORIZED)
+            else:
+                 return Response({"error":"Email required"},status=status.HTTP_401_UNAUTHORIZED)
          except:
-            otp=genarate_otp(email)
+            otp=genarate_otp(email,password)
             current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             data={
                 "otp":otp,
