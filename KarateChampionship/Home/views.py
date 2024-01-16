@@ -117,6 +117,27 @@ class CandidateViewSet(viewsets.ModelViewSet):
     serializer_class = CandidateSerializer
     permission_classes = [AllowAny]
 
+
+
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        club = instance.club
+        entry_fee = instance.entry_fee
+
+        # Decrease the number of players in the associated Club
+        club.no_of_candidate -= 1
+        club.save()
+
+        # Decrease the fees in the associated Club
+        club.fees -= entry_fee
+        club.save()
+
+        # Delete the candidate instance
+        self.perform_destroy(instance)
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
     
 
     @action(detail=False, methods=['GET'])
