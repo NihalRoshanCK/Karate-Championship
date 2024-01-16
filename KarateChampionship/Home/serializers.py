@@ -8,7 +8,7 @@ class ClubSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Club
-        fields = ['email','coach_name', 'name', 'phone', 'fees', 'password' , 'id']
+        fields = ['email','coach_name', 'name', 'phone', 'fees', 'password' , 'id','is_paid','no_of_candidate']
         extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):
@@ -44,10 +44,11 @@ class CandidateSerializer(serializers.ModelSerializer):
         # Perform calculations
         instance = Candidate(**validated_data)
         instance.entry_fee = self.calculate_entry_fee(instance)
-        print(instance.entry_fee,"-------------------------")
         instance.category = self.calculate_category(instance)
-        print(instance.category,"+++++++++++++++++++++++")
         instance.weight_category = self.calculate_weight_category(instance)
+
+        instance.club.no_of_candidate += 1
+        instance.club.save()
 
         self.update_club_fees(instance)
         # Save the instance

@@ -27,6 +27,7 @@ class Club(AbstractBaseUser, PermissionsMixin):
     phone=models.BigIntegerField()
     fees = models.IntegerField(default=0)
     is_paid = models.BooleanField(default=False)
+    no_of_candidate=models.IntegerField(default=0)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
