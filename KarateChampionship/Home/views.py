@@ -104,7 +104,7 @@ class ClubViewSet(viewsets.ModelViewSet):
             "Kumite_and_Kata_candidates_count": club_stats["total_kumite_and_kata_candidates"],
             "Total_kata_only_entry_fee": club_stats["total_kata_entry_fee"],
             "Total_kumite_only_entry_fee": club_stats["total_kumite_entry_fee"],
-            "Total_Kata & Kumite entry_fee": club_stats["total_both_entry_fee"],
+            "Total_Kata_Kumite entry_fee": club_stats["total_both_entry_fee"],
             "Total_club_entry_fee": club_stats["total_entry_fee"],
         }
 
