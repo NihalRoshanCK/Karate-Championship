@@ -143,7 +143,7 @@ class CandidateViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['GET'])
     def filters(self, request):
         queryset = Candidate.objects.filter()
-        
+
         filters = {
             'gender': self.request.query_params.get('gender', None),
             'belt_color': self.request.query_params.get('belt_color', None),
@@ -157,7 +157,23 @@ class CandidateViewSet(viewsets.ModelViewSet):
             if value is not None:
                 queryset = queryset.filter(**{key: value})
 
-        return Response(queryset.values(), status=status.HTTP_200_OK)
+        # Retrieve club data as an object
+        club_data = self.get_club_data()
+
+        # Serialize candidates along with the club data
+        serialized_candidates = CandidateSerializer(queryset, many=True).data
+        for candidate_data in serialized_candidates:
+            candidate_data['club'] = club_data
+
+        return Response(serialized_candidates, status=status.HTTP_200_OK)
+
+    def get_club_data(self):
+        # Assuming you have a way to identify the club you want to retrieve data for
+        # For example, you can get the first club in the queryset
+        club_instance = Club.objects.first()
+        if club_instance:
+            return ClubSerializer(club_instance).data
+        return None
     
     @action(detail=False, methods=['GET'])
     def club_candidates(self, request):
