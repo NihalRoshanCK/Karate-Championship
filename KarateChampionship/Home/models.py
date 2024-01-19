@@ -61,6 +61,25 @@ class Candidate(models.Model):
 
     KUMITE = 'Kumite'
     KATA = 'Kata'
+    
+    WHITE = 'White'
+    YELLOW = 'Yellow'
+    ORANGE = 'Orange'
+    GREEN = 'Green'
+    BLUE = 'Blue'
+    PURPLE = 'Purple'
+    BROWN = 'Brown'
+    BLACK = 'Black'
+    COLOUR_CHOICES = [
+        (WHITE, 'White'),
+        (YELLOW, 'Yellow'),
+        (ORANGE, 'Orange'),
+        (GREEN, 'Green'),
+        (BLUE, 'Blue'),
+        (PURPLE, 'Purple'),
+        (BROWN, 'Brown'),
+        (BLACK, 'Black'),
+    ]
 
     club = models.ForeignKey(Club, on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
@@ -73,7 +92,12 @@ class Candidate(models.Model):
     category = models.CharField(max_length=20, blank=True, null=True)
     weight_category = models.CharField(max_length=20, blank=True, null=True)
     entry_fee=models.IntegerField(blank=True, null=True)
-    
+    colours = models.CharField(default=BLACK,max_length=20, choices=COLOUR_CHOICES)
+
+    # def save(self):
+    #     if self.belt_color=="Black Belt" and colours!='Black':
+
+
     def __str__(self):
         return self.name
 
