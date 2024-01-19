@@ -238,7 +238,7 @@ class CandidateSerializer(serializers.ModelSerializer):
         instance.gender = validated_data.get('gender', instance.gender)
         instance.kumite = validated_data.get('kumite', instance.kumite)
         instance.kata = validated_data.get('kata', instance.kata)
-
+        instance.Colour=validated_data.get('Colour',instance.Colour)
         # Recalculate category and weight category
         instance.category = self.calculate_category(instance)
         print(instance.category)
