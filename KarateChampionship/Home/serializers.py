@@ -3,38 +3,6 @@ from .models import Club, Candidate
 from rest_framework_simplejwt.tokens import RefreshToken
 
 
-class ClubSerializer(serializers.ModelSerializer):
-    # user = UserSerializer()
-
-    class Meta:
-        model = Club
-        fields = ['email','coach_name', 'name', 'phone', 'fees', 'password' , 'id','is_paid','no_of_candidate']
-        extra_kwargs = {'password': {'write_only': True}}
-
-    def create(self, validated_data):
-        password = validated_data.pop('password', None)  # Use None as default
-        club = Club.objects.create(**validated_data)
-        if password is not None:
-            club.set_password(password)
-            club.save()
-        refresh = RefreshToken.for_user(club)
-        return club
-        
-
-class ClubStatisticsSerializer(serializers.Serializer):
-    email = serializers.EmailField()
-    phone = serializers.CharField()
-    total_entry_fee = serializers.IntegerField()
-    total_candidates = serializers.IntegerField()
-    total_kumite_entry_fee = serializers.IntegerField()
-    total_kumite_candidates = serializers.IntegerField()
-    total_kata_entry_fee = serializers.IntegerField()
-    total_kata_candidates = serializers.IntegerField()
-    total_both_entry_fee = serializers.IntegerField()
-    total_kumite_and_kata_candidates= serializers.IntegerField()
-
-
-
 class CandidateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Candidate
@@ -264,13 +232,38 @@ class CandidateSerializer(serializers.ModelSerializer):
         # Update club fees based on the difference
         candidate.club.fees += fee_difference
         candidate.club.save()
+class ClubSerializer(serializers.ModelSerializer):
+    # user = UserSerializer()
+
+    class Meta:
+        model = Club
+        fields = ['email','coach_name', 'name', 'phone', 'fees', 'password' , 'id','is_paid','no_of_candidate']
+        extra_kwargs = {'password': {'write_only': True}}
+
+    def create(self, validated_data):
+        password = validated_data.pop('password', None)  # Use None as default
+        club = Club.objects.create(**validated_data)
+        if password is not None:
+            club.set_password(password)
+            club.save()
+        refresh = RefreshToken.for_user(club)
+        return club
     
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        candidates = CandidateSerializer(instance.candidate_set.all(), many=True).data
+        representation['candidates'] = candidates
+        return representation
 
-    
-# from django.contrib.auth.models import User
 
-
-# class UserSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = User
-#         fields = ['id', 'username', 'email', 'first_name', 'last_name']
+class ClubStatisticsSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    phone = serializers.CharField()
+    total_entry_fee = serializers.IntegerField()
+    total_candidates = serializers.IntegerField()
+    total_kumite_entry_fee = serializers.IntegerField()
+    total_kumite_candidates = serializers.IntegerField()
+    total_kata_entry_fee = serializers.IntegerField()
+    total_kata_candidates = serializers.IntegerField()
+    total_both_entry_fee = serializers.IntegerField()
+    total_kumite_and_kata_candidates= serializers.IntegerField()
