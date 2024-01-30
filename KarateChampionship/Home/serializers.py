@@ -2,6 +2,8 @@ from rest_framework import serializers
 from .models import Club, Candidate
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from Home.utilities import sent_users_mail
+
 
 class CandidateSerializer(serializers.ModelSerializer):
     class Meta:
@@ -217,7 +219,7 @@ class CandidateSerializer(serializers.ModelSerializer):
         # Update other fields in the instance
 
 
-        print(instance.name, instance.age, instance.gender, instance.weight, instance.belt_color, instance.category, instance.weight_category)
+        # print(instance.name, instance.age, instance.gender, instance.weight, instance.belt_color, instance.category, instance.weight_category)
 
         instance.save()
 
@@ -254,6 +256,16 @@ class ClubSerializer(serializers.ModelSerializer):
         candidates = CandidateSerializer(instance.candidate_set.all(), many=True).data
         representation['candidates'] = candidates
         return representation
+    def update(self, instance, validated_data):
+        try:
+            if validated_data.get("is_paid", False):
+                title = 'Payment Received'
+                content = f'Dear {instance.coach_name},\n\nWe are pleased to inform you that your payment for the championship registration has been successfully received. Wishing you the utmost success in the upcoming championship.\n\nBest regards,\nOrganization committee,\nJapan Karate Do Kenyu Ryu India'
+                sent_users_mail(instance.email, content, title)
+                instance.save()
+        except Exception as e:
+            pass  
+        return super().update(instance, validated_data)
 
 
 class ClubStatisticsSerializer(serializers.Serializer):

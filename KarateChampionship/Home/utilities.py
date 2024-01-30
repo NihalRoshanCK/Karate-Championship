@@ -16,3 +16,16 @@ def genarate_otp(email,password):
         fail_silently=False,
         )
     return truncated_otp
+
+def sent_users_mail(email,content,title):
+
+    # Send email
+    send_mail(
+        # f'Your OTP is:  \n and your password is: ',
+        title,
+        content,
+        'sender@example.com',
+        [email],  # user mail
+        fail_silently=False,
+        )
+    return
