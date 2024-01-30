@@ -42,7 +42,7 @@ class ClubViewSet(viewsets.ModelViewSet):
             try:
                 club=Club.objects.get(email=email)
                 if not club.is_active:
-                            return Response({"message": "Your account has been deactivated by admin"},status=status.HTTP_403_FORBIDDEN)
+                        return Response({"message": "Your account has been deactivated by admin"},status=status.HTTP_403_FORBIDDEN)
                 if club.check_password(password):
                     refresh = RefreshToken.for_user(club)
                     data = {

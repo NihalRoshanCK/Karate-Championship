@@ -94,27 +94,9 @@ class Candidate(models.Model):
     entry_fee=models.IntegerField(blank=True, null=True)
     colours = models.CharField(default=BLACK,max_length=20, choices=COLOUR_CHOICES)
 
-    # def save(self):
-    #     if self.belt_color=="Black Belt" and colours!='Black':
-
+    
 
     def __str__(self):
         return self.name
 
-    # def save(self, *args, **kwargs):
-    #     if not self.pk:
-    #         calculate_entry_fee()
-    #         super(Candidate, self).save(*args, **kwargs)
-
-    #     def calculate_entry_fee(self, candidate):
-    #         if (self.candidate.kata and (self.candidate.kumite == False)) or (self.candidate.kumite and (self.candidate.kata == False)):
-    #             return 1000
-    #         else:
-    #             return 1500
-
-
-# class Club(models.Model):
-#     user = models.OneToOneField(User, on_delete=models.CASCADE)
-#     fees = models.IntegerField(default=0)
-#     def __str__(self):
-#         return self.user.username
+   
