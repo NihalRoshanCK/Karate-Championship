@@ -50,9 +50,9 @@ class CandidateSerializer(serializers.ModelSerializer):
             else:
                 return 'Senior Above 21'
         elif belt_color == 'Black Belt':
-            if age < 12 :
+            if age <= 12 :
                 return 'Sub Junior'
-            elif 12 <= age <= 15 :
+            elif 13 <= age <= 15 :
                 return 'Cadet'
             elif 15 <= age < 18 :
                 return 'Junior'
