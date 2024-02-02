@@ -23,9 +23,8 @@ class ClubViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        club = serializer.save()  # Save the user instance
+        club = serializer.save()
         refresh = RefreshToken.for_user(club)
-        # otp = genarate_otp(club)
 
         data = {
             'refresh': str(refresh),
@@ -182,7 +181,6 @@ class CandidateViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['POST'], parser_classes=[FormParser])
     def filtered_candidates(self, request):
         # Get filter parameters from the form data
-        print("ooooooooooooooooooooooooooooooooo")
         category = request.data.get('category')
         weight_category = request.data.get('weight_category')
         gender = request.data.get('gender')
@@ -205,71 +203,3 @@ class CandidateViewSet(viewsets.ModelViewSet):
 
         # Return the serialized data
         return Response(serializer.data, status=status.HTTP_200_OK)
-
-
-# class OtpHandler(APIView):
-#     def post(self,request):
-#          email=request.data.get('email')
-#          try:
-#             club=Club.objects.get(email=email)
-#             return Response({"error":"Active Club found in gven Email Id"},status=status.HTTP_401_UNAUTHORIZED)
-#          except:
-#             otp=genarate_otp(email)
-#             current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-#             data={
-#                 "otp":otp,
-#                 "time": current_time,
-#             }
-#             return Response(data,status=status.HTTP_200_OK)
-
-
-
-
-
-
-
-
-
-
-
-
-
-# class UserViewSet(viewsets.ModelViewSet):
-#     queryset = Club.objects.all()
-#     serializer_class = UserSerializer
-#     permission_classes = [AllowAny]
-
-#     def create(self, request, *args, **kwargs):
-#         serializer = self.get_serializer(data=request.data)
-#         serializer.is_valid(raise_exception=True)
-#         user = serializer.save()
-
-#         return Response(self.get_serializer(user).data, status=status.HTTP_201_CREATED)
-        # if request.user._is_superuser:
-            # queryset=Order.objects.filter(status='pending')
-        # else:
-        # order=Order.objects.get(order_id=order_id)
-        # order.current_position=request.user.staff.hub
-        # order.save() 
-        # # queryset=Order.objects.filter(booking__from_hub=request.user.staff.hub,status='pending')
-        # return OrderSerializer(order).data
-# class CandidateViewSet(viewsets.ModelViewSet):
-#     queryset = Candidate.objects.all()
-#     serializer_class = CandidateSerializer
-
-
-# class ClubRegistrationView(CreateAPIView):
-#     serializer_class = ClubSerializer
-#     permission_classes = [AllowAny]
-#     def post(self, request, *args, **kwargs):
-#         serializer = self.get_serializer(data=request.data)
-#         serializer.is_valid(raise_exception=True)
-#         club = serializer.save()  # Save the user instance
-#         # Generate token
-#         refresh = RefreshToken.for_user(club)
-
-#         data = {
-#             'refresh': str(refresh),
-#             'access': str(refresh.access_token),
-#         }
-#         return Response(data, status=status.HTTP_200_OK)
