@@ -19,9 +19,8 @@ def genarate_otp(email,password):
 
 def sent_users_mail(email,content,title):
 
-    # Send email
+    # Send email this dynamic value
     send_mail(
-        # f'Your OTP is:  \n and your password is: ',
         title,
         content,
         'sender@example.com',

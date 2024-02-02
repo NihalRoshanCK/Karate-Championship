@@ -10,7 +10,6 @@ router.register(r'candidates', CandidateViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),
-    # path('otp/',OtpHandler.as_view()),
     path('clubs/<int:pk>/statistics/', ClubViewSet.as_view({'get': 'club_statistics'}), name='club-statistics'),
     path('candidates/filtered/', CandidateViewSet.as_view({'post': 'filtered_candidates'}), name='filtered-candidates'),
 

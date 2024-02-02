@@ -41,9 +41,6 @@ class Club(AbstractBaseUser, PermissionsMixin):
         return self.email
 
 
-
-
-        
 class Candidate(models.Model):
     MALE = 'M'
     FEMALE = 'F'
@@ -95,7 +92,6 @@ class Candidate(models.Model):
     colours = models.CharField(default=BLACK,max_length=20, choices=COLOUR_CHOICES)
 
     
-
     def __str__(self):
         return self.name
 

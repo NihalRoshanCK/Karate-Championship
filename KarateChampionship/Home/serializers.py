@@ -1,7 +1,5 @@
 from rest_framework import serializers
 from .models import Club, Candidate
-from rest_framework_simplejwt.tokens import RefreshToken
-
 from Home.utilities import sent_users_mail
 
 
@@ -215,16 +213,11 @@ class CandidateSerializer(serializers.ModelSerializer):
         instance.weight_category = self.calculate_weight_category(instance)
         print(instance.weight_category)
 
-
         # Update other fields in the instance
-
-
-        # print(instance.name, instance.age, instance.gender, instance.weight, instance.belt_color, instance.category, instance.weight_category)
 
         instance.save()
 
         return instance
-
     
 
     def update_club_fees_on_entry_fee_change(self, candidate, new_entry_fee, old_entry_fee):
@@ -234,8 +227,9 @@ class CandidateSerializer(serializers.ModelSerializer):
         # Update club fees based on the difference
         candidate.club.fees += fee_difference
         candidate.club.save()
+
+
 class ClubSerializer(serializers.ModelSerializer):
-    # user = UserSerializer()
 
     class Meta:
         model = Club
@@ -243,19 +237,29 @@ class ClubSerializer(serializers.ModelSerializer):
         extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):
-        password = validated_data.pop('password', None)  # Use None as default
+        password = validated_data.pop('password', None)
         club = Club.objects.create(**validated_data)
         if password is not None:
             club.set_password(password)
             club.save()
-        refresh = RefreshToken.for_user(club)
         return club
     
     def to_representation(self, instance):
         representation = super().to_representation(instance)
         candidates = CandidateSerializer(instance.candidate_set.all(), many=True).data
-        representation['candidates'] = candidates
+        sorted_candidates = self.sort_candidates(candidates)
+        representation['candidates'] = sorted_candidates
         return representation
+    
+    def sort_candidates(self, candidates):
+        # Sort the candidates based on whether they have kata and kumite, kata only, or kumite only
+        sorted_candidates = sorted(candidates, key=lambda x: (
+            not x['kumite'] and not x['kata'],  # Candidates having both kata and kumite
+            not x['kumite'] and x['kata'],      # Candidates only having kata
+            x['kumite'] and not x['kata']       # Candidates only having kumite
+        ))
+        return sorted_candidates
+    
     def update(self, instance, validated_data):
         try:
             if validated_data.get("is_paid", False):
