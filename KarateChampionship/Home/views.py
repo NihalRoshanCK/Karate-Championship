@@ -141,7 +141,7 @@ class CandidateViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['GET'])
     def filters(self, request):
-        queryset = Candidate.objects.filter()
+        queryset = Candidate.objects.all().order_by('weight')
 
         filters = {
             'gender': self.request.query_params.get('gender', None),
