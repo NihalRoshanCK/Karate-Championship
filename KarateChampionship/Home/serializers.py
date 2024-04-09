@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import Club, Candidate
 from Home.utilities import sent_users_mail
+from rest_framework.exceptions import ValidationError
 
 
 class CandidateSerializer(serializers.ModelSerializer):
@@ -11,18 +12,38 @@ class CandidateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         # Perform calculations
         instance = Candidate(**validated_data)
+        print(validated_data)
         instance.entry_fee = self.calculate_entry_fee(instance)
         instance.category = self.calculate_category(instance)
-        instance.weight_category = self.calculate_weight_category(instance)
-
+        instance.chase_no=self.assign_chase_no(instance)
+        if instance.kumite:
+            instance.weight_category = self.calculate_weight_category(instance)
         instance.club.no_of_candidate += 1
         instance.club.save()
 
         self.update_club_fees(instance)
         # Save the instance
         instance.save()
+        print("llllllllllllllllllllllllllllllllllll")
         return instance
-
+    def assign_chase_no(self,candidate):
+        student=Candidate.objects.filter(kata=candidate.kata,kumite=candidate.kumite).last()
+        if student is None:
+            if candidate.kata and candidate.kumite:
+                return "KK0001"
+            elif candidate.kata:
+                return "KA0001"
+            else:
+                return "KU0001"
+        else:
+            if candidate.kata and candidate.kumite:
+                expession="KK"
+            elif candidate.kata:
+                expession="KA"
+            else:
+                expession="KU"
+            return  f'{expession}{3:0{int(student.chase_no[2:])+1}d}'
+           
     def calculate_entry_fee(self, candidate):
         if (candidate.kata and (candidate.kumite == False)) or (candidate.kumite and (candidate.kata == False)):
             return 1000
@@ -32,149 +53,242 @@ class CandidateSerializer(serializers.ModelSerializer):
     def calculate_category(self, candidate):
         belt_color = candidate.belt_color
         age = candidate.age
-        weight = candidate.weight
-        print(f"belt_color: {candidate.belt_color}, age: {candidate.age}, weight: {candidate.weight}","Inside category")
-        if belt_color == 'Colour Belt':
-            if 5 <= age <= 9 :
-                return 'Mini Sub Junior'
-            elif 10 <= age <= 13 :
-                return 'Sub Junior'
-            elif 14 <= age <= 15 :
-                return 'Cadet'
-            elif 16 <= age <= 17 :
-                return 'Junior'
-            elif 18 <= age <= 21 :
-                return 'Senior Below 21'
-            else:
-                return 'Senior Above 21'
-        elif belt_color == 'Black Belt':
-            if age <= 12 :
-                return 'Sub Junior'
-            elif 13 <= age <= 15 :
-                return 'Cadet'
-            elif 15 <= age < 18 :
-                return 'Junior'
-            elif 18 <= age <= 21 :
-                return 'Senior Below 21'
-            else:
-                return 'Senior Above 21'
-        print(f"Invalid combination: belt_color={belt_color}, age={age}, weight={weight}")
-        return None
+
+        age_category = {
+            'Colour Belt': {
+                (5, 9): 'Mini Sub Junior',
+                (10, 13): 'Sub Junior',
+                (14, 15): 'Cadet',
+                (16, 17): 'Junior',
+                (18, 21): 'Senior Below 21',
+                (22, float('inf')): 'Senior Above 21'
+            },
+            'Black Belt': {
+                (0, 12): 'Sub Junior',
+                (13, 15): 'Cadet',
+                (16, 17): 'Junior',
+                (18, 21): 'Senior Below 21',
+                (22, float('inf')): 'Senior Above 21'
+            }
+        }
+        print("iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii")
+        if belt_color in age_category:
+            for age_range, group in age_category[belt_color].items():
+                if age_range[0] <= age <= age_range[1]:
+                    return group
+            return ValidationError('Age group not found')  # Default if age does not fit into any range
+        else:
+            return ValidationError('Invalid belt color')
+            # print(f"belt_color: {candidate.belt_color}, age: {candidate.age}, weight: {candidate.weight}","Inside category")
+        # if belt_color == 'Colour Belt' :
+        #     if 5 <= age <= 9 :
+        #         return 'Mini Sub Junior'
+        #     elif 10 <= age <= 13 :
+        #         return 'Sub Junior'
+        #     elif 14 <= age <= 15 :
+        #         return 'Cadet'
+        #     elif 16 <= age <= 17 :
+        #         return 'Junior'
+        #     elif 18 <= age <= 21 :
+        #         return 'Senior Below 21'
+        #     else:
+        #         return 'Senior Above 21'
+        # elif belt_color == 'Black Belt':
+        #     if age <= 12 :
+        #         return 'Sub Junior'
+        #     elif 13 <= age <= 15 :
+        #         return 'Cadet'
+        #     elif 15 <= age < 18 :
+        #         return 'Junior'
+        #     elif 18 <= age <= 21 :
+        #         return 'Senior Below 21'
+        #     else:
+        #         return 'Senior Above 21'
+        # print(f"Invalid combination: belt_color={belt_color}, age={age}, weight={weight}")
+        # return None
 
     def calculate_weight_category(self, candidate):
-        if candidate.category and candidate.kumite:
-            print(f"belt_color: {candidate.belt_color}, age: {candidate.age}, weight: {candidate.weight}","inside weight category")
+        weight_categories = {
+            'Colour Belt': {
+                'Mini Sub Junior': {
+                    (0, 20): 'Kumite -20 Kg',
+                    (21, 25): 'Kumite -25 Kg',
+                    (26, float('inf')): 'Kumite +25 Kg'
+                },
+                'Sub Junior': {
+                    (0, 30): 'Kumite -30 Kg',
+                    (31, 35): 'Kumite -35 Kg',
+                    (36, 40): 'Kumite -40 Kg',
+                    (41, 45): 'Kumite -45 Kg',
+                    (46, float('inf')): 'Kumite +45 Kg'
+                },
+                'Cadet': {
+                    (0, 45): 'Kumite -45 Kg',
+                    (46, 50): 'Kumite -50 Kg',
+                    (51, 55): 'Kumite -55 Kg',
+                    (56, 60): 'Kumite -60 Kg',
+                    (61, float('inf')): 'Kumite +60 Kg'
+                },
+                'Junior': {
+                    (0, 50): 'Kumite -50 Kg',
+                    (51, 55): 'Kumite -55 Kg',
+                    (56, 60): 'Kumite -60 Kg',
+                    (61, 65): 'Kumite -65 Kg',
+                    (66, float('inf')): 'Kumite +65 Kg'
+                }
+            },
+            'Black Belt': {
+                'Sub Junior': {
+                    (0, 30): 'Kumite -30 Kg',
+                    (31, 35): 'Kumite -35 Kg',
+                    (36, 40): 'Kumite -40 Kg',
+                    (41, 45): 'Kumite -45 Kg',
+                    (46, float('inf')): 'Kumite +45 Kg'
+                },
+                'Cadet': {
+                    (0, 45): 'Kumite -45 Kg',
+                    (46, 50): 'Kumite -50 Kg',
+                    (51, 55): 'Kumite -55 Kg',
+                    (56, 60): 'Kumite -60 Kg',
+                    (61, 65): 'Kumite -65 Kg',
+                    (66, float('inf')): 'Kumite +65 Kg'
+                },
+                'Junior': {
+                    (0, 50): 'Kumite -50 Kg',
+                    (51, 55): 'Kumite -55 Kg',
+                    (56, 60): 'Kumite -60 Kg',
+                    (61, 65): 'Kumite -65 Kg',
+                    (66, float('inf')): 'Kumite +65 Kg'
+                }
+            }
+        }
 
-            if candidate.belt_color == 'Colour Belt':
-                if candidate.category == 'Mini Sub Junior':
-                    if candidate.weight <= 20:
-                        return 'Kumite -20 Kg'
-                    elif 21 <= candidate.weight <= 25:
-                        return 'Kumite -25 Kg'
-                    else:
-                        return 'Kumite +25 Kg'
-                elif candidate.category=='Sub Junior':
-                    if candidate.weight<=30:
-                        return 'Kumite -30 Kg'
-                    elif 30<candidate.weight<=35:
-                        return 'Kumite -35 Kg'
-                    elif 36<=candidate.weight<=40:
-                        return 'Kumite -40 Kg'
-                    elif 41<=candidate.weight<=45:
-                        return 'Kumite -45 Kg'
-                    else:
-                        return 'Kumite +45 Kg'
-                elif candidate.category=='Cadet':
-                    if candidate.weight<=45:
-                        return 'Kumite -45 Kg'
-                    elif 46<=candidate.weight<=50:
-                        return 'Kumite -50 Kg'
-                    elif 51<=candidate.weight<=55:
-                        return 'Kumite -55 Kg'
-                    elif 56<=candidate.weight<=60:
-                        return 'Kumite -60 Kg'
-                    else:
-                        return 'Kumite +60 Kg'
-                elif candidate.category=='Junior':
-                    if candidate.weight<=50:
-                        return 'Kumite -50 Kg'
-                    elif 51<=candidate.weight<=55:
-                        return 'Kumite -55 Kg'
-                    elif 56<=candidate.weight<=60:
-                        return 'Kumite -60 Kg'
-                    elif 61<=candidate.weight<=65:
-                        return 'Kumite -65 Kg'
-                    else:
-                        return 'Kumite +65 Kg'
-                else:
-                    if candidate.weight<=50:
-                        return 'Kumite -50 Kg'
-                    elif 51<=candidate.weight<=55:
-                        return 'Kumite -55 Kg'
-                    elif 56<=candidate.weight<=60:
-                        return 'Kumite -60 Kg'
-                    elif 61<=candidate.weight<=65:
-                        return 'Kumite -65 Kg'
-                    elif 66<=candidate.weight<=70:
-                        return 'Kumite -70 Kg'
-                    elif 71<=candidate.weight<=75:
-                        return 'Kumite -75 Kg'
-                    else:
-                        return 'Kumite +75 Kg'
+        belt_color = candidate.belt_color
+        category = candidate.category
+        weight = candidate.weight
+        if belt_color in weight_categories:
+            if category in weight_categories[belt_color]:
+                for weight_range, kumite_category in weight_categories[belt_color][category].items():
+                    if weight_range[0] <= weight <= weight_range[1]:
+                        return kumite_category
+                return ValidationError(f'No kumite category found for weight: {weight}')
             else:
-                if candidate.category=='Sub Junior':
-                    if candidate.weight<=30:
-                        return 'Kumite -30 Kg'
-                    elif 31<=candidate.weight<=35:
-                        return 'Kumite -35 Kg'
-                    elif 36<=candidate.weight<=40:
-                        return 'Kumite -40 Kg'
-                    elif 41<=candidate.weight<=45:
-                        return 'Kumite -45 Kg'
-                    else:
-                        return 'Kumite +45 Kg'
-                elif candidate.category=='Cadet':
-                    if candidate.weight<=45:
-                        return 'Kumite -45 Kg'
-                    elif 46<=candidate.weight<=50:
-                        return 'Kumite -50 Kg'
-                    elif 51<=candidate.weight<=55:
-                        return 'Kumite -55 Kg'
-                    elif 56<=candidate.weight<=60:
-                        return 'Kumite -60 Kg'
-                    elif 61<=candidate.weight<=65:
-                        return 'Kumite -65 Kg'
-                    else:
-                        return 'Kumite +65 Kg'
-                elif candidate.category=='Junior':
-                    if candidate.weight<=50:
-                        return 'Kumite -50 Kg'
-                    elif 51<=candidate.weight<=55:
-                        return 'Kumite -55 Kg'
-                    elif 56<=candidate.weight<=60:
-                        return 'Kumite -60 Kg'
-                    elif 61<=candidate.weight<=65:
-                        return 'Kumite -65 Kg'
-                    else:
-                        return 'Kumite +65 Kg'
-                else:
-                    if candidate.weight<=50:
-                        return 'Kumite -50 Kg'
-                    elif 51<=candidate.weight<=55:
-                        return 'Kumite -55 Kg'
-                    elif 56<=candidate.weight<=60:
-                        return 'Kumite -60 Kg'
-                    elif 61<=candidate.weight<=65:
-                        return 'Kumite -65 Kg'
-                    elif 66<=candidate.weight<=70:
-                        return 'Kumite -70 Kg'
-                    elif 71<=candidate.weight<=75:
-                        return 'Kumite -75 Kg'
-                    else:
-                        return 'Kumite +75 Kg'
+                return ValidationError(f'No kumite category found for category: {category}')
+        else:
+            return ValidationError(f'No kumite category found for belt color: {belt_color}')
+        # if candidate.category and candidate.kumite:
+        #     print(f"belt_color: {candidate.belt_color}, age: {candidate.age}, weight: {candidate.weight}","inside weight category")
+
+        #     if candidate.belt_color == 'Colour Belt':
+        #         if candidate.category == 'Mini Sub Junior':
+        #             if candidate.weight <= 20:
+        #                 return 'Kumite -20 Kg'
+        #             elif 21 <= candidate.weight <= 25:
+        #                 return 'Kumite -25 Kg'
+        #             else:
+        #                 return 'Kumite +25 Kg'
+        #         elif candidate.category=='Sub Junior':
+        #             if candidate.weight<=30:
+        #                 return 'Kumite -30 Kg'
+        #             elif 30<candidate.weight<=35:
+        #                 return 'Kumite -35 Kg'
+        #             elif 36<=candidate.weight<=40:
+        #                 return 'Kumite -40 Kg'
+        #             elif 41<=candidate.weight<=45:
+        #                 return 'Kumite -45 Kg'
+        #             else:
+        #                 return 'Kumite +45 Kg'
+        #         elif candidate.category=='Cadet':
+        #             if candidate.weight<=45:
+        #                 return 'Kumite -45 Kg'
+        #             elif 46<=candidate.weight<=50:
+        #                 return 'Kumite -50 Kg'
+        #             elif 51<=candidate.weight<=55:
+        #                 return 'Kumite -55 Kg'
+        #             elif 56<=candidate.weight<=60:
+        #                 return 'Kumite -60 Kg'
+        #             else:
+        #                 return 'Kumite +60 Kg'
+        #         elif candidate.category=='Junior':
+        #             if candidate.weight<=50:
+        #                 return 'Kumite -50 Kg'
+        #             elif 51<=candidate.weight<=55:
+        #                 return 'Kumite -55 Kg'
+        #             elif 56<=candidate.weight<=60:
+        #                 return 'Kumite -60 Kg'
+        #             elif 61<=candidate.weight<=65:
+        #                 return 'Kumite -65 Kg'
+        #             else:
+        #                 return 'Kumite +65 Kg'
+        #         else:
+        #             if candidate.weight<=50:
+        #                 return 'Kumite -50 Kg'
+        #             elif 51<=candidate.weight<=55:
+        #                 return 'Kumite -55 Kg'
+        #             elif 56<=candidate.weight<=60:
+        #                 return 'Kumite -60 Kg'
+        #             elif 61<=candidate.weight<=65:
+        #                 return 'Kumite -65 Kg'
+        #             elif 66<=candidate.weight<=70:
+        #                 return 'Kumite -70 Kg'
+        #             elif 71<=candidate.weight<=75:
+        #                 return 'Kumite -75 Kg'
+        #             else:
+        #                 return 'Kumite +75 Kg'
+        #     else:
+        #         if candidate.category=='Sub Junior':
+        #             if candidate.weight<=30:
+        #                 return 'Kumite -30 Kg'
+        #             elif 31<=candidate.weight<=35:
+        #                 return 'Kumite -35 Kg'
+        #             elif 36<=candidate.weight<=40:
+        #                 return 'Kumite -40 Kg'
+        #             elif 41<=candidate.weight<=45:
+        #                 return 'Kumite -45 Kg'
+        #             else:
+        #                 return 'Kumite +45 Kg'
+        #         elif candidate.category=='Cadet':
+        #             if candidate.weight<=45:
+        #                 return 'Kumite -45 Kg'
+        #             elif 46<=candidate.weight<=50:
+        #                 return 'Kumite -50 Kg'
+        #             elif 51<=candidate.weight<=55:
+        #                 return 'Kumite -55 Kg'
+        #             elif 56<=candidate.weight<=60:
+        #                 return 'Kumite -60 Kg'
+        #             elif 61<=candidate.weight<=65:
+        #                 return 'Kumite -65 Kg'
+        #             else:
+        #                 return 'Kumite +65 Kg'
+        #         elif candidate.category=='Junior':
+        #             if candidate.weight<=50:
+        #                 return 'Kumite -50 Kg'
+        #             elif 51<=candidate.weight<=55:
+        #                 return 'Kumite -55 Kg'
+        #             elif 56<=candidate.weight<=60:
+        #                 return 'Kumite -60 Kg'
+        #             elif 61<=candidate.weight<=65:
+        #                 return 'Kumite -65 Kg'
+        #             else:
+        #                 return 'Kumite +65 Kg'
+        #         else:
+        #             if candidate.weight<=50:
+        #                 return 'Kumite -50 Kg'
+        #             elif 51<=candidate.weight<=55:
+        #                 return 'Kumite -55 Kg'
+        #             elif 56<=candidate.weight<=60:
+        #                 return 'Kumite -60 Kg'
+        #             elif 61<=candidate.weight<=65:
+        #                 return 'Kumite -65 Kg'
+        #             elif 66<=candidate.weight<=70:
+        #                 return 'Kumite -70 Kg'
+        #             elif 71<=candidate.weight<=75:
+        #                 return 'Kumite -75 Kg'
+        #             else:
+        #                 return 'Kumite +75 Kg'
                     
-        print(f"Invalid combination: belt_color={candidate.belt_color}, category={candidate.category}, kumite={candidate.kumite}")
-        return None
+        # print(f"Invalid combination: belt_color={candidate.belt_color}, category={candidate.category}, kumite={candidate.kumite}")
+        # return None
     
     def update_club_fees(self, candidate):
         # Increment the fees in the associated Club
@@ -209,6 +323,7 @@ class CandidateSerializer(serializers.ModelSerializer):
         instance.colours=validated_data.get('colours',instance.colours)
         # Recalculate category and weight category
         instance.category = self.calculate_category(instance)
+        instance.chase_no=self.assign_chase_no(instance)
         print(instance.category)
         instance.weight_category = self.calculate_weight_category(instance)
         print(instance.weight_category)

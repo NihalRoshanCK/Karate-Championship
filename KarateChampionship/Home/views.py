@@ -12,6 +12,7 @@ from datetime import datetime
 from django.db.models import Sum, Count,Q
 from django.shortcuts import get_object_or_404
 from rest_framework.parsers import FormParser
+from rest_framework.exceptions import NotFound
 
 
 class ClubViewSet(viewsets.ModelViewSet):
@@ -36,23 +37,26 @@ class ClubViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['POST'])        
     def login(self, request):
         email = request.data.get('email')
-        password=request.data.get('password')
-        if email :
+        password = request.data.get('password')
+        if email:
             try:
-                club=Club.objects.get(email=email)
+                club = Club.objects.get(email=email)
                 if not club.is_active:
-                        return Response({"message": "Your account has been deactivated by admin"},status=status.HTTP_403_FORBIDDEN)
+                    return Response({"message": "Your account has been deactivated by admin"}, status=status.HTTP_403_FORBIDDEN)
                 if club.check_password(password):
                     refresh = RefreshToken.for_user(club)
                     data = {
                         'refresh': str(refresh),
                         'access': str(refresh.access_token),
                         'user': ClubSerializer(club).data,
-                        }
+                    }
                     return Response(data, status=status.HTTP_200_OK)
-            except:
-                    return Response({"message":"Invalid Credentials"},status=status.HTTP_401_UNAUTHORIZED)
-            
+                else:
+                    return Response({"message": "Invalid Credentials"}, status=status.HTTP_401_UNAUTHORIZED)
+            except Club.DoesNotExist:
+                raise NotFound("Club not found for the provided email.")
+        else:
+            return Response({"message": "Email is required"}, status=status.HTTP_400_BAD_REQUEST)
     @action(detail=False, methods=['POST'])     
     def otpcreate(self,request):
          email=request.data.get('email')
@@ -116,8 +120,21 @@ class CandidateViewSet(viewsets.ModelViewSet):
     serializer_class = CandidateSerializer
     permission_classes = [AllowAny]
 
+    
+    def list(self, request, *args, **kwargs):   
+        queryset = self.get_queryset()
+        
+        serialized_data = CandidateSerializer(queryset, many=True).data
 
-
+        # Add Club details to each serialized Candidate object
+        for data in serialized_data:
+            club_id = data.get('club', None)
+            if club_id:
+                club = Club.objects.get(id=club_id)
+                club_data = ClubSerializer(club).data
+                data['club'] = club_data
+                print(serialized_data)
+        return Response(serialized_data, status=status.HTTP_200_OK)
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -151,11 +168,21 @@ class CandidateViewSet(viewsets.ModelViewSet):
             'category': self.request.query_params.get('category', None),
             'weight_category': self.request.query_params.get('weight_category', None),
         }
+        color= self.request.query_params.get('color_category', None)
+        # (White, Yellow & Orange)
+        # (Blue, Green & Purple )
+        # ( Brown Belt )
 
         for key, value in filters.items():
+            print(value,"vvvvvvvvvvvvvvvvvvvvvvv")
+            print(key,"kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk")
+            print(color,"cccccccccccccccccccccccccc")
             if value is not None:
                 queryset = queryset.filter(**{key: value})
-
+                print(queryset)
+                if color:
+                    queryset=queryset.filter(Q(colours__in=color))
+            print(queryset)
         serialized_data = CandidateSerializer(queryset, many=True).data
 
         # Add Club details to each serialized Candidate object
@@ -165,7 +192,7 @@ class CandidateViewSet(viewsets.ModelViewSet):
                 club = Club.objects.get(id=club_id)
                 club_data = ClubSerializer(club).data
                 data['club'] = club_data
-
+        print(serialized_data)
         return Response(serialized_data, status=status.HTTP_200_OK)
     
     @action(detail=False, methods=['GET'])

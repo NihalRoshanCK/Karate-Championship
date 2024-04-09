@@ -82,17 +82,28 @@ class Candidate(models.Model):
     name = models.CharField(max_length=255)
     age = models.IntegerField()
     gender = models.CharField(max_length=1, choices=GENDER_CHOICES)
-    belt_color = models.CharField(max_length=20, choices=BELT_CHOICES)
+    belt_color = models.CharField(max_length=80, choices=BELT_CHOICES)
     weight = models.FloatField()
     kata = models.BooleanField(default=False)
     kumite = models.BooleanField(default=False)
-    category = models.CharField(max_length=20, blank=True, null=True)
-    weight_category = models.CharField(max_length=20, blank=True, null=True)
+    category = models.CharField(max_length=50, blank=True, null=True)
+    weight_category = models.CharField(max_length=250, blank=True, null=True)
     entry_fee=models.IntegerField(blank=True, null=True)
-    colours = models.CharField(default=BLACK,max_length=20, choices=COLOUR_CHOICES)
+    chase_no=models.CharField(null=True)
+    colours = models.CharField(max_length=50, choices=COLOUR_CHOICES)
 
     
     def __str__(self):
         return self.name
+class Spacial(models.Model):
+    FAMILY_KATA = 'FAMILY KATA'
+    BLACK_BELT_TEAM_KATA  = 'BLACK BELT TEAM KATA'
+    Events = [
+        (FAMILY_KATA , 'FAMILY KATA'),
+        (BLACK_BELT_TEAM_KATA, 'BLACK BELT TEAM KATA'),
+    ]
+    club= models.ForeignKey(Club, on_delete=models.CASCADE)
+    candidate = models.ManyToManyField(Candidate)
+    category = models.CharField(choices=Events)
 
 #   TAKESHI START
