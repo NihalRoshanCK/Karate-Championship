@@ -89,7 +89,7 @@ class Candidate(models.Model):
     category = models.CharField(max_length=50, blank=True, null=True)
     weight_category = models.CharField(max_length=250, blank=True, null=True)
     entry_fee=models.IntegerField(blank=True, null=True)
-    chase_no=models.CharField(null=True)
+    chest_no=models.CharField(null=True)
     colours = models.CharField(max_length=50, choices=COLOUR_CHOICES)
 
     
