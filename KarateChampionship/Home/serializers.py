@@ -12,7 +12,7 @@ class CandidateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         # Perform calculations
         instance = Candidate(**validated_data)
-        print(validated_data)
+        # print(validated_data)
         instance.entry_fee = self.calculate_entry_fee(instance)
         instance.category = self.calculate_category(instance)
         instance.chest_no=self.assign_chest_no(instance)
@@ -26,6 +26,7 @@ class CandidateSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
     def assign_chest_no(self,candidate):
+        print(candidate)
         student=Candidate.objects.filter(kata=candidate.kata,kumite=candidate.kumite).last()
         if student is None:
             if candidate.kata and candidate.kumite:
@@ -36,10 +37,13 @@ class CandidateSerializer(serializers.ModelSerializer):
                 return "KU0001"
         else:
             if candidate.kata and candidate.kumite:
+                print("toooooooooooooooooo")
                 expression="KK"
             elif candidate.kata:
+                print("katttttttttttttta")
                 expression="KA"
             else:
+                print("kummmmmmmmmmmmmmmmmi")
                 expression="KU"
             return  f'{expression}{int(student.chest_no[2:6]) + 1:04d}'
            
@@ -176,7 +180,7 @@ class CandidateSerializer(serializers.ModelSerializer):
         #     return ValidationError(f'No kumite category found for belt color: {belt_color}')
         
         if candidate.category and candidate.kumite:
-            print(f"belt_color: {candidate.belt_color}, age: {candidate.age}, weight: {candidate.weight}","inside weight category")
+            # print(f"belt_color: {candidate.belt_color}, age: {candidate.age}, weight: {candidate.weight}","inside weight category")
 
             if candidate.belt_color == 'Colour Belt':
                 if candidate.category == 'Mini Sub Junior':
@@ -286,7 +290,7 @@ class CandidateSerializer(serializers.ModelSerializer):
                     else:
                         return 'Kumite +75 Kg'
                     
-        print(f"Invalid combination: belt_color={candidate.belt_color}, category={candidate.category}, kumite={candidate.kumite}")
+        # print(f"Invalid combination: belt_color={candidate.belt_color}, category={candidate.category}, kumite={candidate.kumite}")
         return None
     
     def update_club_fees(self, candidate):
@@ -296,6 +300,8 @@ class CandidateSerializer(serializers.ModelSerializer):
 
 
     def update(self, instance, validated_data):
+        # print(instance.weight,"iiiiiiiiiiiiiiiiii")
+        print(validated_data)
         # Check if kata or kumite fields are updated
         kata_updated = validated_data.get('kata', instance.kata)
         kumite_updated = validated_data.get('kumite', instance.kumite)
@@ -311,6 +317,8 @@ class CandidateSerializer(serializers.ModelSerializer):
         instance.entry_fee = new_entry_fee
 
         # Update club fees based on the difference in entry fees
+        kata=instance.kata
+        kumita=instance.kumite
         self.update_club_fees_on_entry_fee_change(instance, new_entry_fee, old_entry_fee)
         instance.weight = validated_data.get('weight', instance.weight)
         instance.belt_color = validated_data.get('belt_color', instance.belt_color)
@@ -320,12 +328,19 @@ class CandidateSerializer(serializers.ModelSerializer):
         instance.kumite = validated_data.get('kumite', instance.kumite)
         instance.kata = validated_data.get('kata', instance.kata)
         instance.colours=validated_data.get('colours',instance.colours)
+        instance.club=validated_data.get('club',instance.club)
         # Recalculate category and weight category
         instance.category = self.calculate_category(instance)
-        instance.chest_no=self.assign_chest_no(instance)
-        print(instance.category)
-        instance.weight_category = self.calculate_weight_category(instance)
-        print(instance.weight_category)
+        print(instance.kata)
+        print(validated_data.get('kata', instance.kata))
+        print(instance.kumite)
+        print(validated_data.get('kumite', instance.kumite))
+        if instance.kata!=kata or instance.kumite!=kumita:
+            instance.chest_no=self.assign_chest_no(instance)
+        # print(instance.category)
+
+        instance.weight_category = self.calculate_weight_category(instance) 
+        # print(instance.weight_category)
 
         # Update other fields in the instance
 
@@ -337,7 +352,7 @@ class CandidateSerializer(serializers.ModelSerializer):
     def update_club_fees_on_entry_fee_change(self, candidate, new_entry_fee, old_entry_fee):
         # Calculate the difference in entry fees
         fee_difference = new_entry_fee - old_entry_fee
-        print("entered update club fee",fee_difference)
+        # print("entered update club fee",fee_difference)
         # Update club fees based on the difference
         candidate.club.fees += fee_difference
         candidate.club.save()
@@ -376,9 +391,10 @@ class ClubSerializer(serializers.ModelSerializer):
     
     def update(self, instance, validated_data):
         try:
+            print(validated_data)
             if validated_data.get("is_paid", False):
                 title = 'Payment Received'
-                content = f'Dear {instance.coach_name},\n\nWe are pleased to inform you that your payment for the championship registration has been successfully received. Wishing you the utmost success in the upcoming championship.\n\nBest regards,\nOrganization committee,\nJapan Karate Do Kenyu Ryu India'
+                content = f'Dear {instance.coach_name},\n\nWe are pleased to inform you that your payment for the championship registration has been successfully received. Wishing you the utmost success in the upcoming championship.\n\nBest regards,\nOrganization committee,\nTakeshi Cup 2024,\nNihon Shotokan Karate Do SANKUKAI'
                 sent_users_mail(instance.email, content, title)
                 instance.save()
         except Exception as e:
