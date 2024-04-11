@@ -15,7 +15,7 @@ class CandidateSerializer(serializers.ModelSerializer):
         print(validated_data)
         instance.entry_fee = self.calculate_entry_fee(instance)
         instance.category = self.calculate_category(instance)
-        instance.chase_no=self.assign_chest_no(instance)
+        instance.chest_no=self.assign_chest_no(instance)
         if instance.kumite:
             instance.weight_category = self.calculate_weight_category(instance)
         instance.club.no_of_candidate += 1
@@ -36,12 +36,12 @@ class CandidateSerializer(serializers.ModelSerializer):
                 return "KU0001"
         else:
             if candidate.kata and candidate.kumite:
-                expession="KK"
+                expression="KK"
             elif candidate.kata:
-                expession="KA"
+                expression="KA"
             else:
-                expession="KU"
-            return  f'{expession}{3:0{int(student.chase_no[2:])+1}d}'
+                expression="KU"
+            return  f'{expression}{int(student.chest_no[2:6]) + 1:04d}'
            
     def calculate_entry_fee(self, candidate):
         if (candidate.kata and (candidate.kumite == False)) or (candidate.kumite and (candidate.kata == False)):
@@ -322,7 +322,7 @@ class CandidateSerializer(serializers.ModelSerializer):
         instance.colours=validated_data.get('colours',instance.colours)
         # Recalculate category and weight category
         instance.category = self.calculate_category(instance)
-        instance.chase_no=self.assign_chest_no(instance)
+        instance.chest_no=self.assign_chest_no(instance)
         print(instance.category)
         instance.weight_category = self.calculate_weight_category(instance)
         print(instance.weight_category)
