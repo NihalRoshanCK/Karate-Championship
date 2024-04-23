@@ -26,7 +26,6 @@ class CandidateSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
     def assign_chest_no(self,candidate):
-        print(candidate)
         student=Candidate.objects.filter(kata=candidate.kata,kumite=candidate.kumite).last()
         if student is None:
             if candidate.kata and candidate.kumite:
@@ -37,13 +36,10 @@ class CandidateSerializer(serializers.ModelSerializer):
                 return "KU0001"
         else:
             if candidate.kata and candidate.kumite:
-                print("toooooooooooooooooo")
                 expression="KK"
             elif candidate.kata:
-                print("katttttttttttttta")
                 expression="KA"
             else:
-                print("kummmmmmmmmmmmmmmmmi")
                 expression="KU"
             return  f'{expression}{int(student.chest_no[2:6]) + 1:04d}'
            
@@ -184,108 +180,108 @@ class CandidateSerializer(serializers.ModelSerializer):
 
             if candidate.belt_color == 'Colour Belt':
                 if candidate.category == 'Mini Sub Junior':
-                    if candidate.weight <= 20:
+                    if abs(candidate.weight) <= 20:
                         return 'Kumite -20 Kg'
-                    elif 21 <= candidate.weight <= 25:
+                    elif 21 <= abs(candidate.weight) <= 25:
                         return 'Kumite -25 Kg'
                     else:
                         return 'Kumite +25 Kg'
                 elif candidate.category=='Sub Junior':
-                    if candidate.weight<=30:
+                    if abs(candidate.weight)<=30:
                         return 'Kumite -30 Kg'
-                    elif 30<candidate.weight<=35:
+                    elif 30<abs(candidate.weight)<=35:
                         return 'Kumite -35 Kg'
-                    elif 36<=candidate.weight<=40:
+                    elif 36<=abs(candidate.weight)<=40:
                         return 'Kumite -40 Kg'
-                    elif 41<=candidate.weight<=45:
+                    elif 41<=abs(candidate.weight)<=45:
                         return 'Kumite -45 Kg'
                     else:
                         return 'Kumite +45 Kg'
                 elif candidate.category=='Cadet':
-                    if candidate.weight<=45:
+                    if abs(candidate.weight)<=45:
                         return 'Kumite -45 Kg'
-                    elif 46<=candidate.weight<=50:
+                    elif 46<=abs(candidate.weight)<=50:
                         return 'Kumite -50 Kg'
-                    elif 51<=candidate.weight<=55:
+                    elif 51<=abs(candidate.weight)<=55:
                         return 'Kumite -55 Kg'
-                    elif 56<=candidate.weight<=60:
+                    elif 56<=abs(candidate.weight)<=60:
                         return 'Kumite -60 Kg'
                     else:
                         return 'Kumite +60 Kg'
                 elif candidate.category=='Junior':
-                    if candidate.weight<=50:
+                    if abs(candidate.weight)<=50:
                         return 'Kumite -50 Kg'
-                    elif 51<=candidate.weight<=55:
+                    elif 51<=abs(candidate.weight)<=55:
                         return 'Kumite -55 Kg'
-                    elif 56<=candidate.weight<=60:
+                    elif 56<=abs(candidate.weight)<=60:
                         return 'Kumite -60 Kg'
-                    elif 61<=candidate.weight<=65:
+                    elif 61<=abs(candidate.weight)<=65:
                         return 'Kumite -65 Kg'
                     else:
                         return 'Kumite +65 Kg'
                 else:
                     if candidate.weight<=50:
                         return 'Kumite -50 Kg'
-                    elif 51<=candidate.weight<=55:
+                    elif 51<=abs(candidate.weight)<=55:
                         return 'Kumite -55 Kg'
-                    elif 56<=candidate.weight<=60:
+                    elif 56<=abs(candidate.weight)<=60:
                         return 'Kumite -60 Kg'
-                    elif 61<=candidate.weight<=65:
+                    elif 61<=abs(candidate.weight)<=65:
                         return 'Kumite -65 Kg'
-                    elif 66<=candidate.weight<=70:
+                    elif 66<=abs(candidate.weight)<=70:
                         return 'Kumite -70 Kg'
-                    elif 71<=candidate.weight<=75:
+                    elif 71<=abs(candidate.weight)<=75:
                         return 'Kumite -75 Kg'
                     else:
                         return 'Kumite +75 Kg'
             else:
                 if candidate.category=='Sub Junior':
-                    if candidate.weight<=30:
+                    if abs(candidate.weight)<=30:
                         return 'Kumite -30 Kg'
-                    elif 31<=candidate.weight<=35:
+                    elif 31<=abs(candidate.weight)<=35:
                         return 'Kumite -35 Kg'
-                    elif 36<=candidate.weight<=40:
+                    elif 36<=abs(candidate.weight)<=40:
                         return 'Kumite -40 Kg'
-                    elif 41<=candidate.weight<=45:
+                    elif 41<=abs(candidate.weight)<=45:
                         return 'Kumite -45 Kg'
                     else:
                         return 'Kumite +45 Kg'
                 elif candidate.category=='Cadet':
                     if candidate.weight<=45:
                         return 'Kumite -45 Kg'
-                    elif 46<=candidate.weight<=50:
+                    elif 46<=abs(candidate.weight)<=50:
                         return 'Kumite -50 Kg'
-                    elif 51<=candidate.weight<=55:
+                    elif 51<=abs(candidate.weight)<=55:
                         return 'Kumite -55 Kg'
-                    elif 56<=candidate.weight<=60:
+                    elif 56<=abs(candidate.weight)<=60:
                         return 'Kumite -60 Kg'
-                    elif 61<=candidate.weight<=65:
+                    elif 61<=abs(candidate.weight)<=65:
                         return 'Kumite -65 Kg'
                     else:
                         return 'Kumite +65 Kg'
                 elif candidate.category=='Junior':
-                    if candidate.weight<=50:
+                    if abs(candidate.weight)<=50:
                         return 'Kumite -50 Kg'
-                    elif 51<=candidate.weight<=55:
+                    elif 51<=abs(candidate.weight)<=55:
                         return 'Kumite -55 Kg'
-                    elif 56<=candidate.weight<=60:
+                    elif 56<=abs(candidate.weight)<=60:
                         return 'Kumite -60 Kg'
-                    elif 61<=candidate.weight<=65:
+                    elif 61<=abs(candidate.weight)<=65:
                         return 'Kumite -65 Kg'
                     else:
                         return 'Kumite +65 Kg'
                 else:
                     if candidate.weight<=50:
                         return 'Kumite -50 Kg'
-                    elif 51<=candidate.weight<=55:
+                    elif 51<=abs(candidate.weight)<=55:
                         return 'Kumite -55 Kg'
-                    elif 56<=candidate.weight<=60:
+                    elif 56<=abs(candidate.weight)<=60:
                         return 'Kumite -60 Kg'
-                    elif 61<=candidate.weight<=65:
+                    elif 61<=abs(candidate.weight)<=65:
                         return 'Kumite -65 Kg'
-                    elif 66<=candidate.weight<=70:
+                    elif 66<=abs(candidate.weight)<=70:
                         return 'Kumite -70 Kg'
-                    elif 71<=candidate.weight<=75:
+                    elif 71<=abs(candidate.weight)<=75:
                         return 'Kumite -75 Kg'
                     else:
                         return 'Kumite +75 Kg'
