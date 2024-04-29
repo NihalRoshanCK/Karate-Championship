@@ -233,6 +233,6 @@ class CandidateViewSet(viewsets.ModelViewSet):
         students = Candidate.objects.all()
         counter=1
         for i in students:
-            students.chest_no=counter
+            i.chest_no=counter
             counder+=1
         return Response(status=status.HTTP_200_OK)
