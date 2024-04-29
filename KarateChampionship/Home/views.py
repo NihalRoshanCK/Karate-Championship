@@ -228,12 +228,3 @@ class CandidateViewSet(viewsets.ModelViewSet):
 
         # Return the serialized data
         return Response(serializer.data, status=status.HTTP_200_OK)
-    @action(detail=True, methods=['GET'])
-    def change(self, request):
-        students = Candidate.objects.all()
-        counter=1
-        for i in students:
-            i.chest_no=counter
-            i.save()
-            counder+=1
-        return Response(status=status.HTTP_200_OK)
