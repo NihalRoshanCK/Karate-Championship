@@ -45,9 +45,9 @@ class CandidateSerializer(serializers.ModelSerializer):
            
     def calculate_entry_fee(self, candidate):
         if (candidate.kata and (candidate.kumite == False)) or (candidate.kumite and (candidate.kata == False)):
-            return 1000
+            return 800
         else:
-            return 1500
+            return 1600
 
     def calculate_category(self, candidate):
         belt_color = candidate.belt_color
