@@ -133,7 +133,6 @@ class CandidateViewSet(viewsets.ModelViewSet):
                 club = Club.objects.get(id=club_id)
                 club_data = ClubSerializer(club).data
                 data['club'] = club_data
-                # print(serialized_data)
         return Response(serialized_data, status=status.HTTP_200_OK)
 
     def destroy(self, request, *args, **kwargs):
@@ -169,18 +168,12 @@ class CandidateViewSet(viewsets.ModelViewSet):
             'weight_category': self.request.query_params.get('weight_category', None),
         }
         color= self.request.query_params.get('color', None)
-        # print(color,"iiiiiiiiiiiiiiiiiiiiiiiiiiiiiii")
-        # (White, Yellow & Orange)
-        # (Blue, Green & Purple )
-        # ( Brown Belt )
 
         for key, value in filters.items():
             if value is not None:
                 queryset = queryset.filter(**{key: value})
                 if color:
-                    # print("nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn")
                     items=color.split(",")
-                    # print(items,",,,,,,,,,,,,,,,,,,,,,,,,,,")
                     queryset=queryset.filter(Q(colours__in=items))
         serialized_data = CandidateSerializer(queryset, many=True).data
 

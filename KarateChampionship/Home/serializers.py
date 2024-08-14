@@ -12,7 +12,6 @@ class CandidateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         # Perform calculations
         instance = Candidate(**validated_data)
-        # print(validated_data)
         instance.entry_fee = self.calculate_entry_fee(instance)
         instance.category = self.calculate_category(instance)
         instance.chest_no=self.assign_chest_no(instance)
@@ -77,106 +76,10 @@ class CandidateSerializer(serializers.ModelSerializer):
             return ValidationError('Age group not found')  # Default if age does not fit into any range
         else:
             return ValidationError('Invalid belt color')
-            # print(f"belt_color: {candidate.belt_color}, age: {candidate.age}, weight: {candidate.weight}","Inside category")
-        # if belt_color == 'Colour Belt' :
-        #     if 5 <= age <= 9 :
-        #         return 'Mini Sub Junior'
-        #     elif 10 <= age <= 13 :
-        #         return 'Sub Junior'
-        #     elif 14 <= age <= 15 :
-        #         return 'Cadet'
-        #     elif 16 <= age <= 17 :
-        #         return 'Junior'
-        #     elif 18 <= age <= 21 :
-        #         return 'Senior Below 21'
-        #     else:
-        #         return 'Senior Above 21'
-        # elif belt_color == 'Black Belt':
-        #     if age <= 12 :
-        #         return 'Sub Junior'
-        #     elif 13 <= age <= 15 :
-        #         return 'Cadet'
-        #     elif 15 <= age < 18 :
-        #         return 'Junior'
-        #     elif 18 <= age <= 21 :
-        #         return 'Senior Below 21'
-        #     else:
-        #         return 'Senior Above 21'
-        # print(f"Invalid combination: belt_color={belt_color}, age={age}, weight={weight}")
-        # return None
+       
 
     def calculate_weight_category(self, candidate):
-        # weight_categories = {
-        #     'Colour Belt': {
-        #         'Mini Sub Junior': {
-        #             (0, 20): 'Kumite -20 Kg',
-        #             (21, 25): 'Kumite -25 Kg',
-        #             (26, float('inf')): 'Kumite +25 Kg'
-        #         },
-        #         'Sub Junior': {
-        #             (0, 30): 'Kumite -30 Kg',
-        #             (31, 35): 'Kumite -35 Kg',
-        #             (36, 40): 'Kumite -40 Kg',
-        #             (41, 45): 'Kumite -45 Kg',
-        #             (46, float('inf')): 'Kumite +45 Kg'
-        #         },
-        #         'Cadet': {
-        #             (0, 45): 'Kumite -45 Kg',
-        #             (46, 50): 'Kumite -50 Kg',
-        #             (51, 55): 'Kumite -55 Kg',
-        #             (56, 60): 'Kumite -60 Kg',
-        #             (61, float('inf')): 'Kumite +60 Kg'
-        #         },
-        #         'Junior': {
-        #             (0, 50): 'Kumite -50 Kg',
-        #             (51, 55): 'Kumite -55 Kg',
-        #             (56, 60): 'Kumite -60 Kg',
-        #             (61, 65): 'Kumite -65 Kg',
-        #             (66, float('inf')): 'Kumite +65 Kg'
-        #         }
-        #     },
-        #     'Black Belt': {
-        #         'Sub Junior': {
-        #             (0, 30): 'Kumite -30 Kg',
-        #             (31, 35): 'Kumite -35 Kg',
-        #             (36, 40): 'Kumite -40 Kg',
-        #             (41, 45): 'Kumite -45 Kg',
-        #             (46, float('inf')): 'Kumite +45 Kg'
-        #         },
-        #         'Cadet': {
-        #             (0, 45): 'Kumite -45 Kg',
-        #             (46, 50): 'Kumite -50 Kg',
-        #             (51, 55): 'Kumite -55 Kg',
-        #             (56, 60): 'Kumite -60 Kg',
-        #             (61, 65): 'Kumite -65 Kg',
-        #             (66, float('inf')): 'Kumite +65 Kg'
-        #         },
-        #         'Junior': {
-        #             (0, 50): 'Kumite -50 Kg',
-        #             (51, 55): 'Kumite -55 Kg',
-        #             (56, 60): 'Kumite -60 Kg',
-        #             (61, 65): 'Kumite -65 Kg',
-        #             (66, float('inf')): 'Kumite +65 Kg'
-        #         }
-        #     }
-        # }
-
-        # belt_color = candidate.belt_color
-        # category = candidate.category
-        # weight = candidate.weight
-        # if belt_color in weight_categories:
-        #     if category in weight_categories[belt_color]:
-        #         for weight_range, kumite_category in weight_categories[belt_color][category].items():
-        #             if weight_range[0] <= weight <= weight_range[1]:
-        #                 return kumite_category
-        #         return ValidationError(f'No kumite category found for weight: {weight}')
-        #     else:
-        #         return ValidationError(f'No kumite category found for category: {category}')
-        # else:
-        #     return ValidationError(f'No kumite category found for belt color: {belt_color}')
-        
         if candidate.category and candidate.kumite:
-            # print(f"belt_color: {candidate.belt_color}, age: {candidate.age}, weight: {candidate.weight}","inside weight category")
 
             if candidate.belt_color == 'Colour Belt':
                 if candidate.category == 'Mini Sub Junior':
@@ -286,7 +189,6 @@ class CandidateSerializer(serializers.ModelSerializer):
                     else:
                         return 'Kumite +75 Kg'
                     
-        # print(f"Invalid combination: belt_color={candidate.belt_color}, category={candidate.category}, kumite={candidate.kumite}")
         return None
     
     def update_club_fees(self, candidate):
@@ -296,8 +198,6 @@ class CandidateSerializer(serializers.ModelSerializer):
 
 
     def update(self, instance, validated_data):
-        # print(instance.weight,"iiiiiiiiiiiiiiiiii")
-        print(validated_data)
         # Check if kata or kumite fields are updated
         kata_updated = validated_data.get('kata', instance.kata)
         kumite_updated = validated_data.get('kumite', instance.kumite)
@@ -305,9 +205,9 @@ class CandidateSerializer(serializers.ModelSerializer):
         old_entry_fee = instance.entry_fee
 
         if (kata_updated and not kumite_updated) or (kumite_updated and not kata_updated):
-            new_entry_fee = 1000
+            new_entry_fee = 800
         else:
-            new_entry_fee = 1500
+            new_entry_fee = 1600
 
         # Update entry fee
         instance.entry_fee = new_entry_fee
@@ -327,16 +227,10 @@ class CandidateSerializer(serializers.ModelSerializer):
         instance.club=validated_data.get('club',instance.club)
         # Recalculate category and weight category
         instance.category = self.calculate_category(instance)
-        print(instance.kata)
-        print(validated_data.get('kata', instance.kata))
-        print(instance.kumite)
-        print(validated_data.get('kumite', instance.kumite))
         if instance.kata!=kata or instance.kumite!=kumita:
             instance.chest_no=self.assign_chest_no(instance)
-        # print(instance.category)
 
         instance.weight_category = self.calculate_weight_category(instance) 
-        # print(instance.weight_category)
 
         # Update other fields in the instance
 
@@ -348,7 +242,6 @@ class CandidateSerializer(serializers.ModelSerializer):
     def update_club_fees_on_entry_fee_change(self, candidate, new_entry_fee, old_entry_fee):
         # Calculate the difference in entry fees
         fee_difference = new_entry_fee - old_entry_fee
-        # print("entered update club fee",fee_difference)
         # Update club fees based on the difference
         candidate.club.fees += fee_difference
         candidate.club.save()
@@ -387,7 +280,6 @@ class ClubSerializer(serializers.ModelSerializer):
     
     def update(self, instance, validated_data):
         try:
-            print(validated_data)
             if validated_data.get("is_paid", False):
                 title = 'Payment Received'
                 content = f'Dear {instance.coach_name},\n\nWe are pleased to inform you that your payment for the championship registration has been successfully received. Wishing you the utmost success in the upcoming championship.\n\nBest regards,\nOrganization committee,\nTakeshi Cup 2024,\nNihon Shotokan Karate Do SANKUKAI'
