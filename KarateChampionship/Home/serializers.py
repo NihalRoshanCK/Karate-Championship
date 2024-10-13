@@ -25,29 +25,23 @@ class CandidateSerializer(serializers.ModelSerializer):
         # Save the instance
         instance.save()
         return instance
-    def assign_chest_no(self, candidate):
-        with transaction.atomic():
-            # Lock the rows to prevent race conditions
-            last_candidate = Candidate.objects.filter(kata=candidate.kata, kumite=candidate.kumite).select_for_update().last()
-            
-            if last_candidate is None:
-                if candidate.kata and candidate.kumite:
-                    new_chest_no = "KK0001"
-                elif candidate.kata:
-                    new_chest_no = "KA0001"
-                else:
-                    new_chest_no = "KU0001"
+    def assign_chest_no(self,candidate):
+        student=Candidate.objects.filter(kata=candidate.kata,kumite=candidate.kumite).last()
+        if student is None:
+            if candidate.kata and candidate.kumite:
+                return "KK0001"
+            elif candidate.kata:
+                return "KA0001"
             else:
-                prefix = "KK" if candidate.kata and candidate.kumite else "KA" if candidate.kata else "KU"
-                last_number = int(last_candidate.chest_no[2:6])
-                new_chest_no = f'{prefix}{last_number + 1:04d}'
-
-            # Check if the new chest_no already exists
-            if Candidate.objects.filter(chest_no=new_chest_no).exists():
-                # If it exists, call the function recursively to get a new chest_no
-                return self.assign_chest_no(candidate)
-
-            return new_chest_no
+                return "KU0001"
+        else:
+            if candidate.kata and candidate.kumite:
+                expression="KK"
+            elif candidate.kata:
+                expression="KA"
+            else:
+                expression="KU"
+            return  f'{expression}{int(student.chest_no[2:6]) + 1:04d}'
            
     def calculate_entry_fee(self, candidate):
         if (candidate.kata and (candidate.kumite == False)) or (candidate.kumite and (candidate.kata == False)):
