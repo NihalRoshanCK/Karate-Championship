@@ -283,7 +283,7 @@ class ClubSerializer(serializers.ModelSerializer):
         try:
             if validated_data.get("is_paid", False):
                 title = 'Payment Received'
-                content = f'Dear {instance.coach_name},\n\nWe are pleased to inform you that your payment for the championship registration has been successfully received. Wishing you the utmost success in the upcoming championship.\n\nBest regards,\nOrganization committee,\nNATIONAL KENYURYU KARATE CHAMPIONSHIP,\nAIKO EVENTS'
+                content = f'Dear {instance.coach_name},\n\nWe are pleased to inform you that your payment for the championship registration has been successfully received. Wishing you the utmost success in the upcoming championship.\n\nBest regards,\nOrganization committee,\nAIKO EVENTS'
                 sent_users_mail(instance.email, content, title)
                 instance.save()
         except Exception as e:
