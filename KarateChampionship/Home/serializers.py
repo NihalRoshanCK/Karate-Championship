@@ -63,8 +63,8 @@ class CandidateSerializer(serializers.ModelSerializer):
                 (22, float('inf')): 'Senior Above 21'
             },
             'Black Belt': {
-                (0, 12): 'Sub Junior',
-                (13, 15): 'Cadet',
+                (0, 13): 'Sub Junior',
+                (14, 15): 'Cadet',
                 (16, 17): 'Junior',
                 (18, 21): 'Senior Below 21',
                 (22, float('inf')): 'Senior Above 21'
