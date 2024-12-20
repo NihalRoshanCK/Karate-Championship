@@ -202,4 +202,5 @@ CORS_ALLOWED_ORIGINS = [
     "https://kenyuryu-championship-client-git-6fed92-nihalroshan55s-projects.vercel.app",
     "https://kenyuryu.vercel.app",
     "https://iska-bay.vercel.app",
+    "https://chikubukainarional.vercel.app"
 ]
