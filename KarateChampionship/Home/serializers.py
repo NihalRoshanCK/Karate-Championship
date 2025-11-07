@@ -3,6 +3,7 @@ from .models import Club, Candidate
 from Home.utilities import sent_users_mail
 from rest_framework.exceptions import ValidationError
 from django.db import transaction
+import random
 
 
 class CandidateSerializer(serializers.ModelSerializer):
@@ -25,35 +26,15 @@ class CandidateSerializer(serializers.ModelSerializer):
         # Save the instance
         instance.save()
         return instance
+    
     def assign_chest_no(self, candidate):
-        # Find last student with same kata/kumite combination
-        student = Candidate.objects.filter(kata=candidate.kata, kumite=candidate.kumite).last()
+        # Keep trying until we find a unique random number
+        while True:
+            random_number = random.randint(1000, 9999)  # 4-digit random number
 
-        # Determine prefix
-        if candidate.kata and candidate.kumite:
-            prefix = "KK"
-        elif candidate.kata:
-            prefix = "KA"
-        else:
-            prefix = "KU"
-
-        # If no previous student, start from 1
-        if not student or not student.chest_no:
-            return f"{prefix}0001"
-
-        # Convert chest_no to string before slicing
-        last_chest_no = str(student.chest_no)
-
-        # Extract numeric part safely
-        # If chest_no is like "KK0001", this gets 1
-        try:
-            number = int(last_chest_no[2:]) if len(last_chest_no) > 2 else 0
-        except ValueError:
-            number = 0
-
-        # Generate next chest number
-        new_number = number + 1
-        return f"{prefix}{new_number:04d}"
+        # Check if this chest number already exists
+        if not Candidate.objects.filter(chest_no=random_number).exists():
+            return random_number
 
            
     def calculate_entry_fee(self, candidate):
