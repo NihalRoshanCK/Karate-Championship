@@ -47,7 +47,7 @@ class CandidateSerializer(serializers.ModelSerializer):
         if (candidate.kata and (candidate.kumite == False)) or (candidate.kumite and (candidate.kata == False)):
             return 1000
         else:
-            return 1500
+            return 1750
 
     def calculate_category(self, candidate):
         belt_color = candidate.belt_color
@@ -208,7 +208,7 @@ class CandidateSerializer(serializers.ModelSerializer):
         if (kata_updated and not kumite_updated) or (kumite_updated and not kata_updated):
             new_entry_fee = 1000
         else:
-            new_entry_fee = 1500
+            new_entry_fee = 1750
 
         # Update entry fee
         instance.entry_fee = new_entry_fee
