@@ -3,7 +3,6 @@ from .models import Club, Candidate
 from Home.utilities import sent_users_mail
 from rest_framework.exceptions import ValidationError
 from django.db import transaction
-import random
 
 
 class CandidateSerializer(serializers.ModelSerializer):
@@ -26,15 +25,10 @@ class CandidateSerializer(serializers.ModelSerializer):
         # Save the instance
         instance.save()
         return instance
-    
     def assign_chest_no(self, candidate):
-        # Keep trying until we find a unique random number
-        while True:
-            random_number = random.randint(1000, 9999)  # 4-digit random number
-
-        # Check if this chest number already exists
-        if not Candidate.objects.filter(chest_no=random_number).exists():
-            return random_number
+        
+        
+        return 1
 
            
     def calculate_entry_fee(self, candidate):
