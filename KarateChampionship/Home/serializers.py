@@ -252,8 +252,8 @@ class ClubSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Club
-        fields = ['email','coach_name', 'name', 'phone', 'fees', 'password' , 'id','is_paid','no_of_candidate']
-        extra_kwargs = {'password': {'write_only': True}}
+        fields = ['email','coach_name', 'name', 'phone', 'fees', 'password' , 'id','is_paid','no_of_candidate','is_staff']
+        extra_kwargs = {'password': {'write_only': True}, 'is_staff': {'read_only': True}}
 
     def create(self, validated_data):
         password = validated_data.pop('password', None)
