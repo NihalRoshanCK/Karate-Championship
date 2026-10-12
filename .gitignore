@@ -1,2 +1,21 @@
+# Virtual environments
 venv*
+.venv*
+
+# Secrets
 .env
+
+# Python
+__pycache__/
+*.py[cod]
+
+# Local database, uploads and collected static files
+db.sqlite3
+db.sqlite3-journal
+media/
+staticfiles/
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store

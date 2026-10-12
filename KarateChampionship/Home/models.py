@@ -1,6 +1,7 @@
 # Create your models here.
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
+from django.core.cache import cache
 
 
 class CustomClubManager(BaseUserManager):
@@ -107,3 +108,35 @@ class Spacial(models.Model):
     category = models.CharField(choices=Events)
 
 #   TAKESHI START
+
+class SiteSettings(models.Model):
+    CACHE_KEY = 'site_settings'
+
+    championship_name = models.CharField(max_length=255, default='CHIKUBUKAI NATIONAL OPEN KARATE CHAMPIONSHIP 2025')
+    logo = models.ImageField(upload_to='branding/', blank=True, null=True)
+    sidebar_logo = models.ImageField(upload_to='branding/', blank=True, null=True)
+    login_image = models.ImageField(upload_to='branding/', blank=True, null=True)
+    favicon = models.ImageField(upload_to='branding/', blank=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Site settings'
+        verbose_name_plural = 'Site settings'
+
+    def __str__(self):
+        return self.championship_name
+
+    def save(self, *args, **kwargs):
+        # Only one row is ever used
+        self.pk = 1
+        super().save(*args, **kwargs)
+        cache.delete(self.CACHE_KEY)
+
+    def delete(self, *args, **kwargs):
+        super().delete(*args, **kwargs)
+        cache.delete(self.CACHE_KEY)
+
+    @classmethod
+    def load(cls):
+        obj, _ = cls.objects.get_or_create(pk=1)
+        return obj

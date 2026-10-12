@@ -11,6 +11,7 @@ router.register(r'candidates', CandidateViewSet)
 urlpatterns = [
     path('', include(router.urls)),
     path('clubs/<int:pk>/statistics/', ClubViewSet.as_view({'get': 'club_statistics'}), name='club-statistics'),
+    path('site-settings/', SiteSettingsView.as_view(), name='site-settings'),
     path('candidates/filtered/', CandidateViewSet.as_view({'post': 'filtered_candidates'}), name='filtered-candidates'),
 
 ]

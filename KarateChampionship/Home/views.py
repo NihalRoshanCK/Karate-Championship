@@ -1,8 +1,9 @@
-from .models import Club, Candidate
-from .serializers import ClubSerializer, CandidateSerializer, ClubStatisticsSerializer
+from .models import Club, Candidate, SiteSettings
+from .serializers import ClubSerializer, CandidateSerializer, ClubStatisticsSerializer, SiteSettingsSerializer
 from rest_framework import viewsets, status
 from rest_framework.response import Response
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAdminUser
+from rest_framework.views import APIView
 from rest_framework.decorators import action
 from rest_framework import status
 from rest_framework.response import Response
@@ -11,7 +12,8 @@ from .utilities import genarate_otp
 from datetime import datetime
 from django.db.models import Sum, Count,Q
 from django.shortcuts import get_object_or_404
-from rest_framework.parsers import FormParser
+from rest_framework.parsers import FormParser, MultiPartParser, JSONParser
+from django.core.cache import cache
 from rest_framework.exceptions import NotFound
 
 
@@ -221,3 +223,42 @@ class CandidateViewSet(viewsets.ModelViewSet):
 
         # Return the serialized data
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+class SiteSettingsView(APIView):
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
+
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            return [AllowAny()]
+        return [IsAdminUser()]
+
+    def get_cached_data(self):
+        data = cache.get(SiteSettings.CACHE_KEY)
+        if data is None:
+            data = SiteSettingsSerializer(SiteSettings.load()).data
+            cache.set(SiteSettings.CACHE_KEY, data, 300)
+        return data
+
+    def build_response(self, request, data):
+        result = dict(data)
+        for field in SiteSettingsSerializer.IMAGE_FIELDS:
+            if result[field]:
+                result[field] = request.build_absolute_uri(result[field])
+        return result
+
+    def get(self, request):
+        data = self.get_cached_data()
+        etag = f'"site-settings-{data["version"]}"'
+        if request.headers.get('If-None-Match') == etag:
+            response = Response(status=status.HTTP_304_NOT_MODIFIED)
+        else:
+            response = Response(self.build_response(request, data), status=status.HTTP_200_OK)
+        response['ETag'] = etag
+        response['Cache-Control'] = 'public, max-age=60'
+        return response
+
+    def patch(self, request):
+        serializer = SiteSettingsSerializer(SiteSettings.load(), data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(self.build_response(request, self.get_cached_data()), status=status.HTTP_200_OK)

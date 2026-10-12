@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Club, Candidate
+from .models import Club, Candidate, SiteSettings
 from Home.utilities import sent_users_mail
 from rest_framework.exceptions import ValidationError
 from django.db import transaction
@@ -302,3 +302,24 @@ class ClubStatisticsSerializer(serializers.Serializer):
     total_kata_candidates = serializers.IntegerField()
     total_both_entry_fee = serializers.IntegerField()
     total_kumite_and_kata_candidates= serializers.IntegerField()
+
+class SiteSettingsSerializer(serializers.ModelSerializer):
+    IMAGE_FIELDS = ['logo', 'sidebar_logo', 'login_image', 'favicon']
+
+    class Meta:
+        model = SiteSettings
+        fields = ['championship_name', 'logo', 'sidebar_logo', 'login_image', 'favicon', 'updated_at']
+        read_only_fields = ['updated_at']
+
+    def to_representation(self, instance):
+        # Relative urls with a version suffix, so the result is cacheable and
+        # browsers can keep the images until they are replaced
+        version = int(instance.updated_at.timestamp() * 1000)
+        representation = {
+            'championship_name': instance.championship_name,
+            'version': version,
+        }
+        for field in self.IMAGE_FIELDS:
+            image = getattr(instance, field)
+            representation[field] = f'{image.url}?v={version}' if image else None
+        return representation
