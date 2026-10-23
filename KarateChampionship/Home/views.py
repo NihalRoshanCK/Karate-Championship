@@ -9,6 +9,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from .utilities import genarate_otp
+from . import rules
 from datetime import datetime
 from django.db.models import Sum, Count,Q
 from django.shortcuts import get_object_or_404
@@ -139,19 +140,9 @@ class CandidateViewSet(viewsets.ModelViewSet):
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
-        club = instance.club
-        entry_fee = instance.entry_fee
-
-        # Decrease the number of players in the associated Club
-        club.no_of_candidate -= 1
-        club.save()
-
-        # Decrease the fees in the associated Club
-        club.fees -= entry_fee
-        club.save()
-
-        # Delete the candidate instance
+        club_id = instance.club_id
         self.perform_destroy(instance)
+        rules.rebuild_club_totals([club_id])
 
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -262,3 +253,19 @@ class SiteSettingsView(APIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(self.build_response(request, self.get_cached_data()), status=status.HTTP_200_OK)
+
+
+
+class ChampionshipConfigView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        data = rules.get_config()
+        etag = f'"championship-config-{data["version"]}"'
+        if request.headers.get('If-None-Match') == etag:
+            response = Response(status=status.HTTP_304_NOT_MODIFIED)
+        else:
+            response = Response(data, status=status.HTTP_200_OK)
+        response['ETag'] = etag
+        response['Cache-Control'] = 'public, max-age=60'
+        return response

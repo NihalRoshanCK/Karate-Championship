@@ -2,6 +2,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.core.cache import cache
+from django.core.exceptions import ValidationError
 
 
 class CustomClubManager(BaseUserManager):
@@ -43,47 +44,14 @@ class Club(AbstractBaseUser, PermissionsMixin):
 
 
 class Candidate(models.Model):
-    MALE = 'M'
-    FEMALE = 'F'
-    GENDER_CHOICES = [
-        (MALE, 'Male'),
-        (FEMALE, 'Female'),
-    ]
-
-    COLOUR_BELT = 'Colour Belt'
-    BLACK_BELT = 'Black Belt'
-    BELT_CHOICES = [
-        (COLOUR_BELT, 'Colour Belt'),
-        (BLACK_BELT, 'Black Belt'),
-    ]
-
-    KUMITE = 'Kumite'
-    KATA = 'Kata'
-    
-    WHITE = 'White'
-    YELLOW = 'Yellow'
-    ORANGE = 'Orange'
-    GREEN = 'Green'
-    BLUE = 'Blue'
-    PURPLE = 'Purple'
-    BROWN = 'Brown'
-    BLACK = 'Black'
-    COLOUR_CHOICES = [
-        (WHITE, 'White'),
-        (YELLOW, 'Yellow'),
-        (ORANGE, 'Orange'),
-        (GREEN, 'Green'),
-        (BLUE, 'Blue'),
-        (PURPLE, 'Purple'),
-        (BROWN, 'Brown'),
-        (BLACK, 'Black'),
-    ]
-
+    # Gender, belt type, colour and categories are configured in the tables
+    # below and validated by Home.rules; the chosen values are stored as text
+    # so existing registrations keep their values when the rules change later.
     club = models.ForeignKey(Club, on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
     age = models.IntegerField()
-    gender = models.CharField(max_length=1, choices=GENDER_CHOICES)
-    belt_color = models.CharField(max_length=80, choices=BELT_CHOICES)
+    gender = models.CharField(max_length=20)
+    belt_color = models.CharField(max_length=80)
     weight = models.FloatField()
     kata = models.BooleanField(default=False)
     kumite = models.BooleanField(default=False)
@@ -91,7 +59,7 @@ class Candidate(models.Model):
     weight_category = models.CharField(max_length=250, blank=True, null=True)
     entry_fee=models.IntegerField(blank=True, null=True)
     chest_no=models.CharField(null=True)
-    colours = models.CharField(max_length=50, choices=COLOUR_CHOICES)
+    colours = models.CharField(max_length=50)
 
     
     def __str__(self):
@@ -140,3 +108,130 @@ class SiteSettings(models.Model):
     def load(cls):
         obj, _ = cls.objects.get_or_create(pk=1)
         return obj
+
+
+
+# Championship rules, editable from the Django admin
+
+class Gender(models.Model):
+    code = models.CharField(max_length=20, unique=True, help_text='Stored on the candidate, e.g. M')
+    label = models.CharField(max_length=50)
+    order = models.PositiveIntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ['order', 'id']
+
+    def __str__(self):
+        return self.label
+
+
+class BeltType(models.Model):
+    name = models.CharField(max_length=80, unique=True)
+    order = models.PositiveIntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ['order', 'id']
+
+    def __str__(self):
+        return self.name
+
+
+class BeltColour(models.Model):
+    belt_type = models.ForeignKey(BeltType, on_delete=models.CASCADE, related_name='colours')
+    name = models.CharField(max_length=50)
+    filter_group = models.CharField(
+        max_length=100, blank=True,
+        help_text='Colours with the same group are filtered together on the admin dashboard, e.g. "White, Yellow & Orange". Leave empty to use the colour name.',
+    )
+    order = models.PositiveIntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ['order', 'id']
+        constraints = [models.UniqueConstraint(fields=['belt_type', 'name'], name='unique_colour_per_belt_type')]
+
+    def __str__(self):
+        return f'{self.belt_type} - {self.name}'
+
+
+class AgeCategory(models.Model):
+    belt_type = models.ForeignKey(BeltType, on_delete=models.CASCADE, related_name='age_categories')
+    name = models.CharField(max_length=50)
+    min_age = models.PositiveIntegerField()
+    max_age = models.PositiveIntegerField(blank=True, null=True, help_text='Leave empty for no upper limit')
+    order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ['order', 'min_age']
+        verbose_name_plural = 'Age categories'
+        constraints = [models.UniqueConstraint(fields=['belt_type', 'name'], name='unique_age_category_per_belt_type')]
+
+    def __str__(self):
+        return f'{self.belt_type} - {self.name}'
+
+    def clean(self):
+        # Overlaps with the other categories are checked by the admin forms,
+        # which see every row being saved together
+        if self.max_age is not None and self.min_age is not None and self.max_age < self.min_age:
+            raise ValidationError({'max_age': 'Max age must be greater than or equal to min age.'})
+
+
+class WeightCategory(models.Model):
+    age_category = models.ForeignKey(AgeCategory, on_delete=models.CASCADE, related_name='weight_categories')
+    gender = models.ForeignKey(
+        Gender, on_delete=models.CASCADE, blank=True, null=True,
+        help_text='Leave empty to use this class for every gender without its own classes',
+    )
+    label = models.CharField(max_length=100, help_text='e.g. Kumite -25 Kg')
+    max_weight = models.FloatField(
+        blank=True, null=True,
+        help_text='Upper limit in Kg (inclusive). The class starts just above the previous limit. Leave empty for the open (+) class.',
+    )
+
+    class Meta:
+        ordering = [models.F('max_weight').asc(nulls_last=True)]
+        verbose_name_plural = 'Weight categories'
+
+    def __str__(self):
+        return f'{self.age_category} - {self.label}'
+
+
+
+class EventPrice(models.Model):
+    KATA = 'kata'
+    KUMITE = 'kumite'
+    BOTH = 'both'
+    EVENT_CHOICES = [
+        (KATA, 'Kata only'),
+        (KUMITE, 'Kumite only'),
+        (BOTH, 'Kata and Kumite'),
+    ]
+
+    events = models.CharField(max_length=10, choices=EVENT_CHOICES)
+    price = models.PositiveIntegerField()
+    belt_type = models.ForeignKey(
+        BeltType, on_delete=models.CASCADE, blank=True, null=True,
+        help_text='Optional: only for this belt type',
+    )
+    age_category = models.ForeignKey(
+        AgeCategory, on_delete=models.CASCADE, blank=True, null=True,
+        help_text='Optional: only for this age category',
+    )
+
+    class Meta:
+        ordering = ['events', 'id']
+
+    def __str__(self):
+        scope = self.age_category or self.belt_type or 'everyone'
+        return f'{self.get_events_display()} - {self.price} ({scope})'
+
+    def clean(self):
+        if self.age_category_id and self.belt_type_id and self.age_category.belt_type_id != self.belt_type_id:
+            raise ValidationError('The age category belongs to a different belt type.')
+        duplicates = EventPrice.objects.filter(
+            events=self.events, belt_type_id=self.belt_type_id, age_category_id=self.age_category_id,
+        ).exclude(pk=self.pk)
+        if duplicates.exists():
+            raise ValidationError('A price for these events and this scope already exists.')
